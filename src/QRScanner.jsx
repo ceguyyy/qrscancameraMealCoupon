@@ -85,14 +85,6 @@ const QRScanner = () => {
                 <span>{notification.msg}</span>
             </div>
 
-            {/* Persistent Back Button */}
-            <div className="scanner-header">
-                <Link to="/" className="cancel-link">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="15 18 9 12 15 6"></polyline></svg>
-                    Back
-                </Link>
-            </div>
-
             {/* Camera Mount Point */}
             <div id="reader" style={{ width: '100%', height: '100vh', objectFit: 'cover' }}></div>
 
@@ -115,7 +107,6 @@ const QRScanner = () => {
                                 <p>Please enable camera permissions in your browser settings to use the scanner.</p>
                                 <div className="error-actions">
                                     <button className="reset-btn" onClick={startScanner}>Try Again</button>
-                                    <button className="reset-btn secondary" onClick={() => navigate('/')}>Back to Calendar</button>
                                 </div>
                             </div>
                         )}
