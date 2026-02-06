@@ -105,28 +105,6 @@ const QRScanner = () => {
         }
     };
 
-    const handleFileScan = async (e) => {
-        if (!e.target.files || e.target.files.length === 0) return;
-
-        const file = e.target.files[0];
-        const html5QrCode = new Html5Qrcode("reader");
-
-        try {
-            setIsProcessing(true);
-            const decodedText = await html5QrCode.scanFile(file, true);
-            await handleScan(decodedText, html5QrCode);
-        } catch (err) {
-            console.error("File scan failed", err);
-            showNotif('error', 'No QR code found in image');
-        } finally {
-            setIsProcessing(false);
-        }
-    };
-
-    const openInNewTab = () => {
-        window.open(window.location.href, '_blank');
-    };
-
     const handleReset = () => {
         setIsProcessing(false);
         if (scannerRef.current) scannerRef.current.resume();
@@ -181,24 +159,7 @@ const QRScanner = () => {
                                 )}
 
                                 <div className="error-actions">
-                                    <button className="reset-btn" onClick={openInNewTab}>
-                                        Open in New Window
-                                    </button>
-
-                                    <div style={{ position: 'relative', overflow: 'hidden', display: 'inline-block' }}>
-                                        <button className="reset-btn secondary" style={{ width: '100%' }}>Upload / Take Photo</button>
-                                        <input
-                                            type="file"
-                                            accept="image/*"
-                                            capture="environment"
-                                            onChange={handleFileScan}
-                                            style={{ position: 'absolute', top: 0, left: 0, opacity: 0, width: '100%', height: '100%', cursor: 'pointer' }}
-                                        />
-                                    </div>
-
-                                    <button className="reset-btn secondary" onClick={startScanner} style={{ fontSize: '13px', padding: '8px 16px' }}>
-                                        Retry Camera
-                                    </button>
+                                    <button className="reset-btn" onClick={startScanner}>Try Again</button>
                                 </div>
                             </div>
                         )}
