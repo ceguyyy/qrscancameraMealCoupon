@@ -142,11 +142,22 @@ const QRScanner = () => {
                                 </div>
                                 <h3>Camera Access Failed</h3>
                                 <p>Please check your browser permissions.</p>
+
                                 {cameraError && (
-                                    <div style={{ fontSize: '11px', color: '#ff3b30', opacity: 0.8, marginBottom: '16px', fontFamily: 'monospace' }}>
+                                    <div style={{ fontSize: '11px', color: '#ff3b30', opacity: 0.8, marginBottom: '16px', fontFamily: 'monospace', maxWidth: '100%', wordBreak: 'break-word' }}>
                                         {cameraError.name || 'Error'}: {cameraError.message || cameraError.toString()}
                                     </div>
                                 )}
+
+                                {/* Iframe Specific Hint */}
+                                {(window.self !== window.top) && (
+                                    <div style={{ fontSize: '12px', background: 'rgba(255, 149, 0, 0.15)', color: '#FF9500', padding: '10px', borderRadius: '8px', marginBottom: '16px', textAlign: 'left' }}>
+                                        <strong>Embedding Issue?</strong><br />
+                                        Ensure the iframe has the camera attribute:<br />
+                                        <code style={{ display: 'block', marginTop: '4px', background: 'rgba(0,0,0,0.3)', padding: '4px', borderRadius: '4px', userSelect: 'all' }}>allow="camera; microphone"</code>
+                                    </div>
+                                )}
+
                                 <div className="error-actions">
                                     <button className="reset-btn" onClick={startScanner}>Try Again</button>
                                 </div>
