@@ -105,6 +105,28 @@ const QRScanner = () => {
         }
     };
 
+    const handleFileScan = async (e) => {
+        if (!e.target.files || e.target.files.length === 0) return;
+
+        const file = e.target.files[0];
+        const html5QrCode = new Html5Qrcode("reader");
+
+        try {
+            setIsProcessing(true);
+            const decodedText = await html5QrCode.scanFile(file, true);
+            await handleScan(decodedText, html5QrCode);
+        } catch (err) {
+            console.error("File scan failed", err);
+            showNotif('error', 'No QR code found in image');
+        } finally {
+            setIsProcessing(false);
+        }
+    };
+
+    const openInNewTab = () => {
+        window.open(window.location.href, '_blank');
+    };
+
     const handleReset = () => {
         setIsProcessing(false);
         if (scannerRef.current) scannerRef.current.resume();
@@ -141,7 +163,7 @@ const QRScanner = () => {
                                     <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
                                 </div>
                                 <h3>Camera Access Failed</h3>
-                                <p>Please check your browser permissions.</p>
+                                <p>Browser blocked camera access.</p>
 
                                 {cameraError && (
                                     <div style={{ fontSize: '11px', color: '#ff3b30', opacity: 0.8, marginBottom: '16px', fontFamily: 'monospace', maxWidth: '100%', wordBreak: 'break-word' }}>
@@ -159,7 +181,24 @@ const QRScanner = () => {
                                 )}
 
                                 <div className="error-actions">
-                                    <button className="reset-btn" onClick={startScanner}>Try Again</button>
+                                    <button className="reset-btn" onClick={openInNewTab}>
+                                        Open in New Window
+                                    </button>
+
+                                    <div style={{ position: 'relative', overflow: 'hidden', display: 'inline-block' }}>
+                                        <button className="reset-btn secondary" style={{ width: '100%' }}>Upload / Take Photo</button>
+                                        <input
+                                            type="file"
+                                            accept="image/*"
+                                            capture="environment"
+                                            onChange={handleFileScan}
+                                            style={{ position: 'absolute', top: 0, left: 0, opacity: 0, width: '100%', height: '100%', cursor: 'pointer' }}
+                                        />
+                                    </div>
+
+                                    <button className="reset-btn secondary" onClick={startScanner} style={{ fontSize: '13px', padding: '8px 16px' }}>
+                                        Retry Camera
+                                    </button>
                                 </div>
                             </div>
                         )}
