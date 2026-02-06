@@ -6,27 +6,47 @@ import './App.css';
 const QRScanner = () => {
     const [notification, setNotification] = useState({ show: false, type: '', msg: '' });
     const [isProcessing, setIsProcessing] = useState(false);
-    const [cameraError, setCameraError] = useState(false);
+    const [cameraError, setCameraError] = useState(null);
     const scannerRef = useRef(null);
     const navigate = useNavigate();
 
-    const startScanner = () => {
-        setCameraError(false);
-        // Initialize Scanner
-        const html5QrCode = new Html5Qrcode("reader");
-        scannerRef.current = html5QrCode;
+    const cleanupScanner = async () => {
+        if (scannerRef.current) {
+            try {
+                if (scannerRef.current.isScanning) {
+                    await scannerRef.current.stop();
+                }
+                scannerRef.current.clear();
+            } catch (error) {
+                console.warn("Failed to cleanup scanner:", error);
+            }
+            scannerRef.current = null;
+        }
+    };
 
-        const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+    const startScanner = async () => {
+        // Cleanup any existing instance first
+        await cleanupScanner();
 
-        html5QrCode.start(
-            { facingMode: "environment" },
-            config,
-            (decodedText) => handleScan(decodedText, html5QrCode)
-        ).catch(err => {
+        setCameraError(null);
+
+        try {
+            // Initialize Scanner
+            const html5QrCode = new Html5Qrcode("reader");
+            scannerRef.current = html5QrCode;
+
+            const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+
+            await html5QrCode.start(
+                { facingMode: "environment" },
+                config,
+                (decodedText) => handleScan(decodedText, html5QrCode)
+            );
+        } catch (err) {
             console.error("Camera failed", err);
-            setCameraError(true);
-            showNotif('error', 'Camera access denied');
-        });
+            setCameraError(err);
+            showNotif('error', 'Camera access failed');
+        }
     };
 
     useEffect(() => {
@@ -34,9 +54,7 @@ const QRScanner = () => {
 
         // Cleanup on unmount
         return () => {
-            if (scannerRef.current && scannerRef.current.isScanning) {
-                scannerRef.current.stop().then(() => scannerRef.current.clear());
-            }
+            cleanupScanner();
         };
     }, []);
 
@@ -103,8 +121,13 @@ const QRScanner = () => {
                                 <div className="error-icon">
                                     <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
                                 </div>
-                                <h3>Camera Access Required</h3>
-                                <p>Please enable camera permissions in your browser settings to use the scanner.</p>
+                                <h3>Camera Access Failed</h3>
+                                <p>Please check your browser permissions.</p>
+                                {cameraError && (
+                                    <div style={{ fontSize: '11px', color: '#ff3b30', opacity: 0.8, marginBottom: '16px', fontFamily: 'monospace' }}>
+                                        {cameraError.name || 'Error'}: {cameraError.message || cameraError.toString()}
+                                    </div>
+                                )}
                                 <div className="error-actions">
                                     <button className="reset-btn" onClick={startScanner}>Try Again</button>
                                 </div>
