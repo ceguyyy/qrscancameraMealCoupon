@@ -25,20 +25,39 @@ const QRScanner = () => {
     };
 
     const startScanner = async () => {
-        // Cleanup any existing instance first
         await cleanupScanner();
-
         setCameraError(null);
 
         try {
-            // Initialize Scanner
             const html5QrCode = new Html5Qrcode("reader");
             scannerRef.current = html5QrCode;
 
-            const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+            // Check cameras first - this triggers permission prompt if needed
+            let cameras = [];
+            try {
+                cameras = await Html5Qrcode.getCameras();
+            } catch (e) {
+                console.warn("Could not list cameras", e);
+                // Continue to try start() anyway, as it might handle it
+            }
+
+            if (cameras.length === 0) {
+                console.warn("No cameras found via getCameras");
+            }
+
+            const config = {
+                fps: 10,
+                qrbox: { width: 250, height: 250 },
+                aspectRatio: 1.0
+            };
+
+            // Prefer back camera, fallback to first available
+            const cameraId = (cameras.length > 0)
+                ? (cameras.find(c => c.label.toLowerCase().includes('back'))?.id || cameras[0].id)
+                : { facingMode: "environment" };
 
             await html5QrCode.start(
-                { facingMode: "environment" },
+                cameraId,
                 config,
                 (decodedText) => handleScan(decodedText, html5QrCode)
             );
