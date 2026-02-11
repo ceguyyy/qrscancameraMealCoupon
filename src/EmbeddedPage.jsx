@@ -55,6 +55,9 @@ const EmbeddedPage = () => {
                 result = await response.json();
             }
 
+            console.log("Raw Token:", token);
+            console.log("Decrypted API Response:", result);
+
             // 1. Handle Specific Business Logic Errors
             if (result.error === true) {
                 if (result.message === "ERR_TOKEN_EXPIRED") {
