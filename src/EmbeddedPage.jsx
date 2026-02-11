@@ -9,6 +9,7 @@ const EmbeddedPage = () => {
     const [viewState, setViewState] = useState('LOADING'); // LOADING, SUCCESS, EXPIRED, UNAUTHORIZED, ERROR
     const [currentPage, setCurrentPage] = useState('calendar'); // 'calendar' or 'scanner'
     const [errorMessage, setErrorMessage] = useState('');
+    const [decryptedData, setDecryptedData] = useState(null);
 
     useEffect(() => {
         const queryParams = new URLSearchParams(window.location.search);
@@ -26,8 +27,6 @@ const EmbeddedPage = () => {
 
     const fetchData = async (token, env) => {
         try {
-            const urlInfix = env === 'development' ? '-dev' : '';
-
             // Using the base API URL to check validity as per the snippet
             // But usually this would be a specific check endpoint
             // For now, let's assume valid if params exist, or verify via a lightweight call if possible.
@@ -37,7 +36,8 @@ const EmbeddedPage = () => {
             // Let's assume for now we trust the token and let components handle 401s too?
             // Actually, the snippet had specific logic:
 
-            const apiUrl = `https://api-officeless${urlInfix}.mekari.com/`;
+            const urlInfix = env === 'development' ? '-dev' : '';
+            const apiUrl = `https://api-officeless${urlInfix}.mekari.com/28086/auth/decrypt`;
 
             const response = await fetch(apiUrl, {
                 method: 'GET',
@@ -57,6 +57,8 @@ const EmbeddedPage = () => {
 
             console.log("Raw Token:", token);
             console.log("Decrypted API Response:", result);
+
+            setDecryptedData(result);
 
             // 1. Handle Specific Business Logic Errors
             if (result.error === true) {
@@ -151,6 +153,10 @@ const EmbeddedPage = () => {
     // Success State - Render Application Logic
     return (
         <div className="embedded-container">
+            <div style={{ padding: '10px', background: '#f0f0f0', fontSize: '10px', wordBreak: 'break-all', borderBottom: '1px solid #ccc' }}>
+                <strong>Token:</strong> {config.token}<br />
+                <strong>Decrypted:</strong> {JSON.stringify(decryptedData)}
+            </div>
             {currentPage === 'calendar' ? (
                 <MealCalendar
                     token={config.token}
