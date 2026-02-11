@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import MealCalendar from './MealCalendar';
 import QRScanner from './QRScanner';
+import EmbeddedPage from './EmbeddedPage';
 import './App.css';
 
 function App() {
@@ -16,6 +17,7 @@ function App() {
       <Routes>
         <Route path="/" element={<MealCalendar />} />
         <Route path="/scan" element={<QRScanner />} />
+        <Route path="/embedded" element={<EmbeddedPage />} />
       </Routes>
     </Router>
   );
