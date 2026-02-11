@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Html5Qrcode } from "html5-qrcode";
 import './App.css';
 
-const QRScanner = () => {
+const QRScanner = ({ token, env, onClose }) => {
     const [notification, setNotification] = useState({ show: false, type: '', msg: '' });
     const [isProcessing, setIsProcessing] = useState(false);
     const [cameraError, setCameraError] = useState(null);
@@ -89,9 +89,13 @@ const QRScanner = () => {
         scannerInstance.pause(); // Pause camera
 
         try {
-            const res = await fetch("https://api-officeless-dev.mekari.com/28086/scanQR", {
+            const urlInfix = env === 'development' ? '-dev' : '';
+            const res = await fetch(`https://api-officeless${urlInfix}.mekari.com/28086/scanQR`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `${token}`
+                },
                 body: JSON.stringify({ data: decodedText })
             });
 
@@ -112,6 +116,14 @@ const QRScanner = () => {
 
     return (
         <div className="scanner-page">
+            {onClose && (
+                <div className="scanner-header">
+                    <button onClick={onClose} style={{ background: 'transparent', border: 'none', color: 'white', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '16px', fontWeight: '600', cursor: 'pointer' }}>
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                        Close
+                    </button>
+                </div>
+            )}
             {/* Notification */}
             <div className={`dynamic-island ${notification.show ? 'show' : ''} ${notification.type}`}>
                 {notification.type === 'success' ? (

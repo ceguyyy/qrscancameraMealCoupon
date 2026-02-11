@@ -4,7 +4,7 @@ import './App.css';
 
 const API_URL = "https://api-officeless-dev.mekari.com/28086/getMenuForCalendar";
 
-const MealCalendar = () => {
+const MealCalendar = ({ token, env, onScan }) => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [menuData, setMenuData] = useState({});
   const [loading, setLoading] = useState(true);
@@ -15,20 +15,33 @@ const MealCalendar = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await fetch(API_URL);
+        const urlInfix = env === 'development' ? '-dev' : '';
+        const API_URL = `https://api-officeless${urlInfix}.mekari.com/28086/getMenuForCalendar`;
+
+        const res = await fetch(API_URL, {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `${token}`
+          }
+        });
         const data = await res.json();
+
+        // Handle potential error response from API
+        if (data.error) throw new Error(data.message);
 
         // Group by Date String (YYYY-MM-DD)
         const grouped = {};
-        data.forEach(item => {
-          let dateStr = "";
-          if (typeof item.menu_date === 'number') {
-            dateStr = new Date(item.menu_date).toLocaleDateString('en-CA');
-          } else if (item.menu_date) {
-            dateStr = item.menu_date.split("T")[0];
-          }
-          if (dateStr) grouped[dateStr] = item;
-        });
+        if (Array.isArray(data)) {
+          data.forEach(item => {
+            let dateStr = "";
+            if (typeof item.menu_date === 'number') {
+              dateStr = new Date(item.menu_date).toLocaleDateString('en-CA');
+            } else if (item.menu_date) {
+              dateStr = item.menu_date.split("T")[0];
+            }
+            if (dateStr) grouped[dateStr] = item;
+          });
+        }
 
         setMenuData(grouped);
       } catch (err) {
@@ -37,8 +50,9 @@ const MealCalendar = () => {
         setLoading(false);
       }
     };
-    fetchData();
-  }, []);
+
+    if (token) fetchData();
+  }, [token, env]);
 
   // Calendar Logic
   const year = currentDate.getFullYear();
@@ -56,7 +70,11 @@ const MealCalendar = () => {
 
   const handleApprove = () => {
     setShowModal(false);
-    navigate('/scan');
+    if (onScan) {
+      onScan();
+    } else {
+      navigate('/scan');
+    }
   };
 
   return (
@@ -123,7 +141,10 @@ const MealCalendar = () => {
         </div>
       </div>
 
-      {/* Floating Action Button Removed */}
+      {/* Floating Action Button */}
+      <button className="fab" onClick={() => setShowModal(true)}>
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2"></path><path d="M17 3h2a2 2 0 0 1 2 2v2"></path><path d="M21 17v2a2 2 0 0 1-2 2h-2"></path><path d="M7 21H5a2 2 0 0 1-2-2v-2"></path></svg>
+      </button>
 
       {/* Camera Access Modal */}
       {showModal && (
